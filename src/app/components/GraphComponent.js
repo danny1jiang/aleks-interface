@@ -129,13 +129,13 @@ const GridComponent = memo(function GridComponent({horizontalMarks, verticalMark
 		<div className="relative grid grid-cols-18 grid-rows-18 border-2 border-black select-none">
 			<div
 				className={"absolute flex flex-row justify-center"}
-				style={{width: "100%", bottom: cellSide * 12 + cellSide + "px"}}
+				style={{width: "100%", bottom: cellSide * 12 + 4 + "px"}}
 			>
 				{horizontalMarks}
 			</div>
 			<div
 				className={"absolute flex flex-col justify-center"}
-				style={{height: "100%", left: cellSide * 16 - cellSide + "px"}}
+				style={{height: "100%", left: cellSide * 16 - 4 + "px"}}
 			>
 				{verticalMarks}
 			</div>
@@ -209,9 +209,9 @@ function GraphMark({index, isHorizontal}) {
 	if (isHorizontal) {
 		return (
 			<div className={"relative flex flex-col items-center h-5 w-5"}>
-				<div className={"border-1 border-[#777777] h-2.5"} />
-				<div className={"absolute top-2.5"}>
-					<CustomText fontSize={"0.6"} color={"black"}>
+				<div className={"border-1 border-[#777777] h-2"} />
+				<div className={"absolute top-2"}>
+					<CustomText type={"small"} color={"black"}>
 						{value}
 					</CustomText>
 				</div>
@@ -220,12 +220,12 @@ function GraphMark({index, isHorizontal}) {
 	} else {
 		return (
 			<div className={"relative flex flex-row items-center h-5 w-5"}>
-				<div className={"border-1 border-[#777777] w-2.5"} />
-				<div className={"absolute left-2.5"}>
-					<CustomText fontSize={"0.6"} color={"black"}>
+				<div className={"absolute left-2"}>
+					<CustomText type={"small"} color={"black"}>
 						{value}
 					</CustomText>
 				</div>
+				<div className={"border-1 border-[#777777] w-2"} />
 			</div>
 		);
 	}

@@ -1,13 +1,17 @@
-export function CustomText({type, color, children, fontSize}) {
+export function CustomText({type, color, children}) {
 	let className = "text-white ";
+	let style = {
+		fontSize: "1rem",
+	};
 	if (color) {
 		className = "text-" + color;
 	}
-	if (fontSize) {
-		className += " text-[" + fontSize + "rem]";
+	if (type === "small") {
+		style.fontSize = "0.6rem";
 	}
-	if (type === "medium") {
-		className += " text-md";
-	}
-	return <p className={className}>{children}</p>;
+	return (
+		<p className={className} style={style}>
+			{children}
+		</p>
+	);
 }
