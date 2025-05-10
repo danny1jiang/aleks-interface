@@ -16,6 +16,7 @@ const cellSide = 5; // Size of each cell in pixels
 const maxStackSize = 10; // Maximum stack size of cell update stack
 
 export function GraphComponent() {
+	const [tool, setTool] = useState(null);
 	const [selectedStack, setSelectedStack] = useState([]);
 	const [cells, setCells] = useState([]);
 	const [horizontalMarks, setHorizontalMarks] = useState([]);
@@ -23,12 +24,15 @@ export function GraphComponent() {
 
 	function handleUndo() {
 		if (selectedStack.length > 0) {
+			if (selectedStack.length === 1) {
+				if (selectedStack[0].length > 1) return;
+			}
 			setSelectedStack((prev) => [...prev.slice(0, prev.length - 1)]);
 		}
 	}
 
 	function handleDelete() {
-		handleStackUpdate(selectedStack, setSelectedStack, {x: null, y: null});
+		handleStackUpdate(selectedStack, setSelectedStack, []);
 	}
 
 	useLayoutEffect(() => {
@@ -59,6 +63,7 @@ export function GraphComponent() {
 			{/*<div className="w-90 h-90 border-2 border-black"></div>*/}
 			<div className="flex flex-col justify-center items-center">
 				<GridClickOverlay
+					tool={tool}
 					selectedStack={selectedStack}
 					setSelectedStack={setSelectedStack}
 				/>
@@ -70,12 +75,18 @@ export function GraphComponent() {
 			</div>
 			<div className="relative ml-5 p-2 flex flex-col shadow-lg rounded-lg border-2 border-[#adadad]">
 				<div className="grid grid-cols-3 grid-rows-2 gap-2">
-					<GraphButton onClick={handleClick}>
+					<GraphButton
+						isSelected={tool === "eraser"}
+						onClick={() => {
+							setTool("eraser");
+						}}
+					>
 						<Eraser size={30} strokeWidth={1.5} color="#006070" />
 					</GraphButton>
 					<GraphButton
+						isSelected={tool === "pencil"}
 						onClick={() => {
-							handleStackUpdate(selectedStack, setSelectedStack, {x: 0, y: 0});
+							setTool("pencil");
 						}}
 					>
 						<Pencil size={30} strokeWidth={1.5} color="#006070" />
@@ -116,11 +127,11 @@ function handleClick() {
 	alert("Button Clicked");
 }
 
-function handleStackUpdate(selectedStack, setSelectedStack, selectedPos) {
+function handleStackUpdate(selectedStack, setSelectedStack, newPosList) {
 	if (selectedStack.length >= maxStackSize) {
-		setSelectedStack((prev) => [...prev.slice(1), selectedPos]);
+		setSelectedStack((prev) => [...prev.slice(1), newPosList]);
 	} else {
-		setSelectedStack((prev) => [...prev, selectedPos]);
+		setSelectedStack((prev) => [...prev, newPosList]);
 	}
 }
 
@@ -144,12 +155,13 @@ const GridComponent = memo(function GridComponent({horizontalMarks, verticalMark
 	);
 });
 
-function GridClickOverlay({selectedStack, setSelectedStack}) {
+function GridClickOverlay({tool, selectedStack, setSelectedStack}) {
 	const cells = [];
 	for (let i = 0; i < 19; i++) {
 		for (let j = 0; j < 19; j++) {
 			cells.push(
 				<CellClickOverlay
+					tool={tool}
 					selectedStack={selectedStack}
 					setSelectedStack={setSelectedStack}
 					key={i + " " + j}
@@ -163,13 +175,17 @@ function GridClickOverlay({selectedStack, setSelectedStack}) {
 	return <div className="absolute grid grid-cols-19 grid-rows-19 z-1">{cells}</div>;
 }
 
-function CellClickOverlay({selectedStack, setSelectedStack, x, y}) {
+function CellClickOverlay({tool, selectedStack, setSelectedStack, x, y}) {
 	let dotColor = "rgba(0,0,0,0)";
 
+	let currPosList = [];
 	if (selectedStack.length > 0) {
-		let selected = selectedStack[selectedStack.length - 1];
-		if (selected.x === x && selected.y === y) {
-			dotColor = "black";
+		currPosList = selectedStack[selectedStack.length - 1];
+		for (let i = 0; i < currPosList.length; i++) {
+			if (currPosList[i].x === x && currPosList[i].y === y) {
+				dotColor = "black";
+				break;
+			}
 		}
 	}
 
@@ -182,17 +198,37 @@ function CellClickOverlay({selectedStack, setSelectedStack, x, y}) {
 				cellSide +
 				" flex flex-col items-center justify-center cursor-pointer"
 			}
-			onMouseUp={() => handleStackUpdate(selectedStack, setSelectedStack, {x: x, y: y})}
+			onMouseUp={() => {
+				if (
+					tool === "eraser" &&
+					currPosList.find((element) => element.x === x && element.y === y)
+				) {
+					handleStackUpdate(
+						selectedStack,
+						setSelectedStack,
+						currPosList.filter((pos) => pos.x !== x || pos.y !== y)
+					);
+				} else if (tool === "pencil") {
+					handleStackUpdate(selectedStack, setSelectedStack, [
+						...currPosList,
+						{x: x, y: y},
+					]);
+				}
+			}}
 		>
 			<div className="w-1/3 h-1/3 rounded-full" style={{backgroundColor: dotColor}} />
 		</div>
 	);
 }
 
-function GraphButton({children, onClick}) {
+function GraphButton({children, onClick, isSelected}) {
+	const selectedClass = isSelected ? "border-3 border-[#3bacc0]" : "border-none";
 	return (
 		<button
-			className="cursor-pointer flex flex-row items-center justify-center w-15 h-12 bg-[#e7e7e7] rounded-md"
+			className={
+				selectedClass +
+				" hover:bg-[#d1e8ec] hover:border-3 hover:border-[#3bacc0] cursor-pointer flex flex-row items-center justify-center w-15 h-12 rounded-md "
+			}
 			onClick={onClick}
 		>
 			{children}
